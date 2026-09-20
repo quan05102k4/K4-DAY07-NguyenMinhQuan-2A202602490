@@ -8,6 +8,19 @@
 
 **Tổng điểm phần nhóm: 40** = Lựa chọn tài liệu (10) + Thiết kế chiến lược (15) + Chất lượng truy xuất (10) + Thuyết trình (5).
 
+### Phân vai
+
+Theo bảng vai trong tài liệu lab: nhóm 3 người thì mỗi người một vai, nhóm 4 người thì người thứ tư làm Report & Demo Lead. **Vai là trách nhiệm điều phối cộng thêm** — ai cũng vẫn tự code Giai đoạn 2 và tự chạy benchmark riêng, nên chỉ có **3 chiến lược chunking**, không phải 4.
+
+| Vai | Người | Trách nhiệm điều phối | Hạn | Thực tế |
+|---|---|---|---|---|
+| **R1 · Data** | Nguyễn Thành Nam | Chốt chủ đề, chia mỗi người 2–3 URL, kiểm metadata từng file, giữ `sources.csv` | CP2 | ⚠️ Corpus bị lọc bớt **sau** CP2 mà không thông báo lại — chính bạn ấy benchmark trên snapshot cũ |
+| **R2 · Benchmark** | Đinh Bảo Hưng | Viết 5 query + gold answer, tự kiểm mỗi gold answer trích được từ tài liệu thật | CP5 | ⚠️ Có viết đủ 5 query + gold answer, nhưng trên **corpus tiếng Anh của riêng mình**; nhóm không nhận được bộ đề chung từ vai này |
+| **R3 · Strategy** | Nguyễn Minh Quân | **Bảo đảm không ai trùng chiến lược**, nhận vai chunk theo heading, chạy baseline cho nhóm | CP5 | ⚠️ Baseline có chạy; phần chống trùng **không thực thi** — cả 3/3 chiến lược đều là biến thể heading |
+| **Report & Demo Lead** | Hoàng Anh Tú | Gom kết quả cả nhóm, dẫn phần thuyết trình | — | ⚠️ Báo cáo cá nhân mới có mục 1–3; chưa chạy benchmark riêng |
+
+> **Bảng này là phần quan trọng nhất của báo cáo.** Ba biến số làm hỏng phép so sánh giữa các thành viên (corpus, bộ query, chiến lược) không phải ba tai nạn rời rạc — mỗi biến trùng khít với **đúng một vai không hoàn thành phần điều phối của mình**. Chi tiết ở mục 2.
+
 ---
 
 ## 1. Lựa chọn tài liệu (Document Set Quality) — Nhóm (10 điểm)
@@ -88,9 +101,9 @@ Chạy `ChunkingStrategyComparator().compare(body, chunk_size=800)` trên 3 tài
 
 ### Chiến lược của từng thành viên
 
-> Mỗi thành viên điền một khối dưới đây (copy thêm nếu nhóm có nhiều hơn 3 người).
+> **Ba chiến lược, không phải bốn.** Vai R1/R2/R3 mỗi người nhận một chiến lược; Report & Demo Lead không nhận chiến lược riêng mà chịu trách nhiệm gom kết quả. Yêu cầu "không ai trùng chiến lược" vì thế áp lên đúng 3 người — và đó cũng là lý do trùng 3/3 là mất sạch trục so sánh chứ không phải mất một phần.
 
-**Thành viên 1 — Nguyễn Minh Quân** *(chiến lược đã chạy và có số liệu đầy đủ)*
+**Chiến lược 1 — Nguyễn Minh Quân (R3 · Strategy)** *(chiến lược đã chạy và có số liệu đầy đủ)*
 - **Loại chiến lược:** custom — `HeadingChunker`
 - **Mô tả & lý do chọn cho chủ đề này:** Văn bản quy định đã được người soạn chia sẵn theo mục (`## 3. ĐIỀU KIỆN YÊU CẦU TRẢ HÀNG/HOÀN TIỀN`), mỗi mục là một đơn vị ngữ nghĩa trọn vẹn. Cắt theo ranh giới có sẵn đó thay vì áp một kích thước cố định lên trên. Mục nào dài quá ngưỡng thì hạ xuống `RecursiveChunker` và **gắn lại tiêu đề vào từng mảnh con** — không có bước đó thì từ mảnh thứ hai trở đi mất ngữ cảnh "đây là mục nói về cái gì".
 - **Code snippet:**
@@ -120,43 +133,49 @@ class HeadingChunker:
         return chunks
 ```
 
-**Thành viên 2 — Nguyễn Thành Nam**
+**Chiến lược 2 — Nguyễn Thành Nam (R1 · Data)**
 - **Loại chiến lược:** custom — `MarkdownHeadingChunker` + lọc metadata
 - **Mô tả & lý do chọn:** Cùng ý tưởng bám heading, nhưng nhấn vào việc **bảo toàn ngữ cảnh điều khoản cha cho mọi mảnh con** khi phải cắt nhỏ một mục dài. Chạy trên `MockEmbedder`, kết quả 1/5 câu có chunk liên quan trong top-3 — bạn tự ghi nhận nguyên nhân là nhiễu hàm băm chứ không phải lỗi chiến lược, và chuyển trọng tâm đánh giá sang độ mạch lạc của chunk.
 - **Lưu ý đối chiếu:** chạy trên **snapshot corpus cũ** (còn `shopee-terms-of-service`, `shopee-operation-regulations` — hai tài liệu sau đó đã bị loại khỏi corpus vì ngoài phạm vi). Điều này giải thích vì sao top-1 của câu 1 và câu 3 rơi vào `shopee-terms-of-service`.
+- **Liên hệ với vai R1:** đây vừa là kết quả của bạn ấy vừa là ví dụ rõ nhất cho phần điều phối còn thiếu. R1 giữ `sources.csv` và chốt corpus ở CP2; corpus bị lọc sau đó mà không có mốc đóng băng nào, nên chính benchmark của R1 trỏ vào hai file không còn tồn tại. Bài học không phải "bạn ấy chạy sai" mà là **thiếu một commit mốc để cả nhóm cùng trỏ vào**.
 
-**Thành viên 3 — Hoàng Anh Tú**
-- **Loại chiến lược:** *(chưa chốt — báo cáo cá nhân mới có mục 1–3, chưa có mục 4 và 5)*
-- **Mô tả & lý do chọn:** Phần code đã hoàn thiện đầy đủ (42 passed) với cách tiếp cận trùng khớp cả nhóm: regex lookbehind cho `SentenceChunker`, thuật toán hai chiều cho `RecursiveChunker`, tiền lọc (pre-filtering) cho `search_with_filter`, prompt đánh số `[1] [2]` kèm nguồn cho agent. **Chưa chạy benchmark nên chưa có số liệu để đưa vào bảng so sánh.**
-
-**Thành viên 4 — Đinh Bảo Hưng**
+**Chiến lược 3 — Đinh Bảo Hưng (R2 · Benchmark)**
 - **Loại chiến lược:** custom — `HeadingChunker(chunk_size=800)`, cài đặt trong workspace riêng của bạn ấy (`src/heading_chunking.py` ở repo của Đinh Bảo Hưng, không có trong repo này)
 - **Mô tả & lý do chọn:** Giữ **toàn bộ đường dẫn heading** (không chỉ heading gần nhất) trong từng mảnh con, với ngân sách `800 − độ dài đường dẫn heading − xuống dòng`. Lý do: trong tài liệu nguồn, cùng một mục "Stripe" xuất hiện ở cả hoàn tiền toàn bộ lẫn hoàn tiền một phần, chỉ đường dẫn heading mới phân biệt được.
 - **Lưu ý đối chiếu:** chạy trên **corpus hoàn toàn khác** — tài liệu Open Food Network tiếng Anh, 5 file → 114 chunk (36 buyer / 78 seller), backend `MockEmbedder 64D`, và **bộ 5 query riêng bằng tiếng Anh** (Stripe refund, subscription…). Đạt 5/5 nhưng trên bộ đề của chính mình.
+- **Liên hệ với vai R2:** bạn ấy **đã làm đúng phần khó của R2** — viết đủ 5 query kèm gold answer và tự kiểm từng đáp án trích được từ tài liệu thật. Chỉ có điều tài liệu thật đó là corpus Open Food Network của riêng mình, nên **bộ đề chung của nhóm không bao giờ ra đời từ vai này**. Đây là nguyên nhân gốc của việc "ba bộ query khác nhau" ở mục 3a: không phải ai cũng tự tiện làm riêng, mà là không có bộ chung để dùng. Bộ 5 câu ở mục 3 dưới đây là do R3 làm bù vào phút cuối.
+
+**Hoàng Anh Tú — Report & Demo Lead** *(không nhận chiến lược riêng)*
+- **Vai trò:** người thứ tư trong nhóm không cầm chiến lược chunking thứ 4 — tài liệu lab giao vai này **gom kết quả cả nhóm và dẫn phần thuyết trình**. Vì vậy ô "chiến lược" của bạn ấy để trống là **đúng thiết kế**, không phải thiếu sót.
+- **Phần đã xong:** code Giai đoạn 2 hoàn thiện đầy đủ (42 passed) với cách tiếp cận trùng khớp cả nhóm: regex lookbehind cho `SentenceChunker`, thuật toán hai chiều cho `RecursiveChunker`, tiền lọc (pre-filtering) cho `search_with_filter`, prompt đánh số `[1] [2]` kèm nguồn cho agent.
+- **Phần còn nợ:** lab quy định *"vai là trách nhiệm điều phối cộng thêm — ai cũng vẫn tự chạy benchmark riêng"*, nên Demo Lead vẫn nợ **một lượt benchmark của chính mình** (báo cáo cá nhân mới có mục 1–3, chưa có mục 4 và 5). Quan trọng hơn: phần **gom kết quả cả nhóm** chưa làm, mà chính nó là thứ lẽ ra phát hiện sớm việc ba người chạy trên ba corpus và ba bộ query khác nhau. Nhóm chỉ nhận ra khi ghép báo cáo ở phút cuối.
 
 ### So Sánh Giữa Các Thành Viên
 
 #### 3a. So sánh giữa các thành viên — và vì sao nó KHÔNG so trực tiếp được
 
-| Thành viên | Chiến lược | Corpus | Backend | Bộ query | Điểm tự báo |
-|---|---|---|---|---|---|
-| Nguyễn Minh Quân | `HeadingChunker(800)` | Shopee, 7 file (bản đã lọc) | **gemini-embedding-001** | Bộ VN 5 câu | **10/10** |
-| Nguyễn Thành Nam | `MarkdownHeadingChunker` | Shopee, **snapshot cũ** (còn 2 file đã loại) | MockEmbedder | Bộ VN khác | **1/5** |
-| Hoàng Anh Tú | *(chưa chốt)* | — | — | — | *(chưa chạy)* |
-| Đinh Bảo Hưng | `HeadingChunker(800)` | **Open Food Network, tiếng Anh**, 5 file / 114 chunk | MockEmbedder 64D | **Bộ EN riêng** | **5/5** |
+| Thành viên | Vai | Chiến lược | Corpus | Backend | Bộ query | Số tự báo | Thang gốc | Quy về rubric /10 |
+|---|---|---|---|---|---|---|---|---|
+| Nguyễn Minh Quân | R3 | `HeadingChunker(800)` | Shopee, 7 file (bản đã lọc) | **gemini-embedding-001** | Bộ VN 5 câu | **10/10** | rubric `SCORING.md` (2đ × 5 câu) | **10/10** |
+| Nguyễn Thành Nam | R1 | `MarkdownHeadingChunker` | Shopee, **snapshot cũ** (còn 2 file đã loại) | MockEmbedder | Bộ VN khác | **1/5** | đếm số câu có chunk liên quan | ≤ **2/10** |
+| Đinh Bảo Hưng | R2 | `HeadingChunker(800)` | **Open Food Network, tiếng Anh**, 5 file / 114 chunk | MockEmbedder 64D | **Bộ EN riêng** | **5/5** | đếm số câu có chunk liên quan | ≤ **10/10** |
+| Hoàng Anh Tú | Demo Lead | *(không nhận — đúng thiết kế)* | — | — | — | *(chưa chạy benchmark riêng)* | — | — |
 
-**Bốn điều kiện đã lệch nhau, nên cột "điểm tự báo" không dùng để xếp hạng được:**
+**Năm điều kiện đã lệch nhau, nên cột "số tự báo" không dùng để xếp hạng được:**
 
-1. **Ba corpus khác nhau.** Lab yêu cầu cả nhóm dùng chung một bộ tài liệu; thực tế có Shopee bản mới, Shopee bản cũ, và một corpus tiếng Anh hoàn toàn khác chủ đề lớp L3B.
-2. **Ba bộ query khác nhau.** `docs/SCORING.md` nói rõ *"Nhóm thống nhất 5 câu hỏi đánh giá"* — điều kiện để so sánh có nghĩa. Hiện mỗi người chấm trên đề của mình, nên 10/10, 5/5 và 1/5 đo ba thứ khác nhau.
-3. **Backend khác nhau.** Chỉ một người chạy embedder thật. Chênh lệch giữa mock và thật đã đo được là **0/10 vs 10/10** trên cùng chiến lược, cùng corpus — lớn hơn mọi khác biệt giữa các chiến lược.
-4. **Chiến lược trùng nhau.** Ba trên bốn người đều chọn biến thể chunk-theo-heading, trong khi lab dặn *"Chiến lược chunking không được trùng nhau"*. Nhóm vô tình mất đi phần lớn không gian so sánh.
+1. **Hai thang đo khác nhau bị xếp chung một cột.** 10/10 là thang rubric (2 điểm/câu × 5 câu); 1/5 và 5/5 là **đếm số câu**. Đọc lướt sẽ tưởng 10 > 5 > 1, nhưng trên trục đếm câu thì Quân cũng là **5/5** — tức **hoà với Hưng, không phải gấp đôi**. Đây là lỗi sơ đẳng nhất và là lỗi nhóm suýt mang đi thuyết trình.
+2. **Ba corpus khác nhau** — *thuộc phần điều phối của R1.* Lab yêu cầu cả nhóm dùng chung một bộ tài liệu; thực tế có Shopee bản mới, Shopee bản cũ, và một corpus tiếng Anh hoàn toàn khác chủ đề lớp L3B.
+3. **Ba bộ query khác nhau** — *thuộc phần điều phối của R2.* `docs/SCORING.md` nói rõ *"Nhóm thống nhất 5 câu hỏi đánh giá"*. Bộ chung không ra đời từ vai R2 nên mỗi người tự viết đề của mình, và ba con số đo ba thứ khác nhau.
+4. **Chiến lược trùng nhau 3/3** — *thuộc phần điều phối của R3.* Cả ba người cầm chiến lược đều chọn biến thể chunk-theo-heading, trong khi lab dặn *"Chiến lược chunking không được trùng nhau"*. Vì chỉ có 3 chiến lược được kỳ vọng, đây là **mất sạch trục so sánh**, không phải mất một phần.
+5. **Backend khác nhau.** Chỉ một người chạy embedder thật. Chênh lệch giữa mock và thật đã đo được là **0/10 vs 10/10** trên cùng chiến lược, cùng corpus — lớn hơn mọi khác biệt giữa các chiến lược. Vai nào cũng không sở hữu biến này, và đó chính là lý do nó trôi.
 
-Điểm chung đáng ghi nhận: cả bốn báo cáo đều **42 passed**, và ba người mô tả `search_with_filter` bằng đúng cơ chế tiền lọc (pre-filtering) — phần code cốt lõi thì nhóm đồng nhất.
+**Riêng con số 5/5 của R2 cần đặt dấu hỏi.** `MockEmbedder` băm MD5, **không mã hoá ngữ nghĩa** — chạy mock trên corpus Shopee 157 chunk thì R3 được **0/10** ở mức nội dung. Đạt tuyệt đối 5/5 bằng mock chỉ hợp lý nếu chấm ở **mức `doc_id`** thay vì mức nội dung: với 114 chunk trải trên 5 file (36 buyer / 78 seller), xác suất gold doc lọt top-3 **hoàn toàn ngẫu nhiên** đã là ~60% nếu gold là file nhỏ và ~97% nếu gold là file 78 chunk — tức 5/5 gần như chắc chắn xảy ra kể cả khi embedding là nhiễu thuần. Đây đúng là Failure case 4 ở mục 4. **Cần hỏi lại R2 chấm ở mức nào trước khi đưa con số này lên slide.**
+
+Điểm chung đáng ghi nhận: cả bốn báo cáo đều **42 passed**, và ba người mô tả `search_with_filter` bằng đúng cơ chế tiền lọc (pre-filtering) — phần code cốt lõi thì nhóm đồng nhất. Khác biệt nằm hết ở phần điều phối, không ở phần code.
 
 #### 3b. So sánh có kiểm soát — 4 chiến lược, cùng mọi điều kiện
 
-> Vì 3a không cho kết luận được, chúng tôi chạy thêm một phép đo **có kiểm soát**: cả 4 chiến lược trên **cùng corpus, cùng 5 query, cùng backend `gemini-embedding-001`, cùng `top_k=3`** — chỉ đổi đúng một dòng chọn chunker trong `bench.py`. Kết quả đầy đủ ở `ket_qua_4_chien_luoc.txt`, chạy bằng `python bench.py --strategy all`.
+> Vì cả 3/3 chiến lược của nhóm đều là biến thể heading, trục so sánh mà lab yêu cầu đã mất sạch ở 3a. Mục này là phần **khôi phục lại trục đó**: R3 tự chạy bù cả 4 chiến lược chuẩn trong một phép đo **có kiểm soát**: cả 4 chiến lược trên **cùng corpus, cùng 5 query, cùng backend `gemini-embedding-001`, cùng `top_k=3`** — chỉ đổi đúng một dòng chọn chunker trong `bench.py`. Kết quả đầy đủ ở `ket_qua_4_chien_luoc.txt`, chạy bằng `python bench.py --strategy all`.
 
 | Chiến lược | Điểm truy xuất (/10) | Chunk | min / tb / max | Cắt giữa câu | Điểm mạnh | Điểm yếu |
 |-----------|----------------------|-------|----------------|--------------|-----------|----------|
@@ -227,6 +246,8 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
 **Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
+> **Mở đầu — mỗi biến số trôi đều có một vai đứng tên.** Lab giao sẵn R1 chốt corpus (CP2), R2 giao bộ query chung (CP5), R3 chống trùng chiến lược (CP5). Nhóm làm hết phần *code* của từng vai, bỏ phần *điều phối* — và ba thứ làm hỏng phép so sánh trùng khít với đúng ba vai đó: corpus trôi (R1), bộ query không ra đời (R2), trùng chiến lược 3/3 (R3). Nhóm mở đầu bằng insight này vì nó cho thấy sự cố không ngẫu nhiên mà **có cấu trúc**.
+>
 > 1. **Chấm theo `doc_id` thổi phồng kết quả.** Cùng một lượt chạy, chấm ngây thơ ra 2/10 còn chấm ở mức nội dung ra 0/10 — vì câu 1 và câu 5 có gold `doc_id` ở top-2 nhưng lọt vào **sai section**, ngữ cảnh không chứa con số cần trả lời.
 > 2. **Metadata schema đẹp trên giấy vẫn có thể vô dụng khi chạy.** Trang chính sách trả hàng gốc gộp cả thời hạn người mua (15 ngày) lẫn thời hạn người bán (02 ngày lịch); để nguyên một file `audience: both` thì filter không có gì để lọc. Phải tách đôi tài liệu thì filter mới có việc thật.
 > 3. **Crawler của repo tự làm hỏng filter.** Hàm `yaml_value()` bọc mọi giá trị front matter bằng ngoặc kép, nên `metadata['audience']` đọc ra là `'"seller"'` — `metadata_filter={"audience": "seller"}` không khớp gì và `search_with_filter()` luôn trả rỗng. Lỗi này im lặng cho tới tận lúc benchmark.
@@ -261,7 +282,9 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 - *Đề xuất sửa:* khai báo cho mỗi câu một chuỗi đặc trưng bắt buộc phải xuất hiện trong ngữ cảnh truy xuất được, rồi kiểm chuỗi đó — đúng cách `bench.py` đang làm qua trường `must_contain`. Thêm bằng chứng cho thấy mock hoàn toàn là nhiễu: `voucher-refund-policy#11` (§14 Từ chối mã ưu đãi giả mạo) đứng top-1 cho **cả Q4 lẫn Q5**, hai câu chẳng liên quan gì tới mã ưu đãi. Một chunk thắng mọi truy vấn là dấu hiệu của hàm băm, không phải của ngữ nghĩa.
 
 **Bài học rút ra khi so sánh trong nhóm:**
-> **Bài học lớn nhất lại không nằm ở chunking mà ở quy trình: nhóm quên chốt biến số trước khi đo.** Câu hỏi của lab là "cùng tài liệu nhưng chiến lược khác nhau dẫn tới khác biệt gì" — nhóm không trả lời được, vì đã vô tình đổi *bốn* biến cùng lúc (corpus, bộ query, backend, chiến lược) nên không quy được khác biệt về nguyên nhân nào. Một thành viên đạt 10/10, một đạt 5/5, một đạt 1/5, nhưng ba con số đó đo ba thứ khác nhau.
+> **Bài học lớn nhất không nằm ở chunking mà ở quy trình — và điều đáng nói là quy trình đã có sẵn, chỉ không ai thực thi.** Tài liệu lab giao sẵn ba vai kèm hạn cụ thể: R1 chốt corpus ở CP2, R2 giao bộ query chung ở CP5, R3 chống trùng chiến lược ở CP5. Nhóm nhận vai nhưng chỉ làm phần *code* của vai, bỏ phần *điều phối*. Kết quả là ba biến trôi, và **mỗi biến trôi trùng khít với đúng một vai**: corpus trôi → R1, bộ query trôi → R2, chiến lược trùng 3/3 → R3. Không phải nhóm thiếu cơ chế phân công; nhóm có cơ chế, có hạn, và không dùng.
+>
+> Vì thế câu hỏi của lab — "cùng tài liệu nhưng chiến lược khác nhau dẫn tới khác biệt gì" — nhóm không trả lời được từ dữ liệu của chính mình: bốn biến đổi cùng lúc (corpus, bộ query, backend, chiến lược) nên không quy được khác biệt về nguyên nhân nào. Ba con số 10/10, 5/5, 1/5 không những đo ba đối tượng khác nhau mà còn **đo bằng hai đơn vị khác nhau** (rubric 10 điểm vs đếm số câu). Vai Demo Lead lẽ ra là chốt chặn cuối phát hiện chuyện này khi gom kết quả, nhưng việc gom chỉ xảy ra lúc ghép báo cáo ở phút cuối — quá muộn để chạy lại.
 >
 > Khi dựng lại phép đo **có kiểm soát** (mục 3b) thì bài học thật mới hiện ra, và nó ngược với trực giác ban đầu: **chiến lược chunking gần như không ảnh hưởng tới điểm** — cả bốn đều 10/10 — trong khi **backend embedding quyết định tất cả** (0/10 với mock, 10/10 với Gemini, cùng chiến lược cùng corpus). Nhóm đã dành phần lớn thời gian tranh luận về chunking, thứ hoá ra ít quan trọng nhất trong ba biến.
 >
@@ -272,7 +295,7 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 >
 > **2. Thống nhất backend trước, vì nó át mọi biến khác.** Một Gemini API key miễn phí là đủ cho cả nhóm; nếu buộc phải dùng mock thì cả nhóm cùng dùng mock — quan trọng là giống nhau, không phải là tốt nhất.
 >
-> **3. Phân công chiến lược ngay từ đầu để không trùng.** Ba trên bốn người cùng chọn biến thể heading. Lần sau nên bốc thăm: một người `fixed_size` có overlap, một `recursive`, một `by_sentences`, một heading — đúng như vai R3 trong lab doc có nhiệm vụ bảo đảm.
+> **3. Thực thi phần điều phối của vai, không chỉ phần code.** Cả 3/3 người cầm chiến lược đều chọn biến thể heading — R3 giữ nhiệm vụ chống trùng nhưng chỉ làm phần "nhận vai chunk theo heading" rồi thôi. Lab đã giao sẵn vai và hạn; lần sau chỉ cần **chốt phân công ở buổi đầu và kiểm lại đúng hạn CP2/CP5**: R3 giữ heading, hai người còn lại bốc `fixed_size` có overlap và `by_sentences` hoặc `recursive` — ba người ba chiến lược, Demo Lead không bốc.
 >
 > **4. Viết query khó hơn.** Bộ 5 câu hiện tại bão hoà — chiến lược nào cũng 10/10 nên không phân biệt được gì. Cần thêm câu buộc tổng hợp từ hai mục khác nhau, và câu dùng từ ngữ không trùng với văn bản gốc.
 >
@@ -285,7 +308,7 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 | Tiêu chí | Điểm tự đánh giá | Căn cứ |
 |----------|-------------------|--------|
 | Lựa chọn tài liệu (Document Set Quality) | **9** / 10 | 7 tài liệu công khai, metadata đủ 7 trường, `sources.csv` khớp 1-1, `document_version` trích từ chính văn bản. Trừ điểm vì `shipping-policy` để `audience: both` khiến filter `==` loại nhầm nó |
-| Thiết kế chiến lược (Strategy Design) | **12** / 15 | Có chiến lược custom + lý do + baseline 4 chiến lược + phép đo có kiểm soát. Trừ điểm vì so sánh giữa các thành viên không hợp lệ (lệch corpus/query/backend) và 3/4 người trùng chiến lược |
+| Thiết kế chiến lược (Strategy Design) | **12** / 15 | Có chiến lược custom + lý do + baseline 4 chiến lược + phép đo có kiểm soát ở 3b khôi phục lại trục so sánh đã mất. Trừ điểm vì **3/3 người cầm chiến lược đều trùng biến thể heading** (phần điều phối của R3 không thực thi) và so sánh ở 3a không hợp lệ do lệch corpus/query/backend |
 | Chất lượng truy xuất (Retrieval Quality) | **10** / 10 | 10/10 trên `gemini-embedding-001`, chấm hai mức, A/B chứng minh filter chênh 2 điểm |
-| Thuyết trình (Demo) | **—** / 5 | Chưa thuyết trình; đã chuẩn bị 6 insight + 4 failure case và `bench.py` chạy sẵn |
+| Thuyết trình (Demo) | **—** / 5 | Chưa thuyết trình. Vai Report & Demo Lead (Hoàng Anh Tú) chủ trì; đã có sẵn 6 insight + 4 failure case + `bench.py` chạy được trực tiếp. Phần gom kết quả cả nhóm còn dở — cần chốt trước buổi demo |
 | **Tổng phần nhóm** | **31–36** / 40 | tuỳ điểm demo |

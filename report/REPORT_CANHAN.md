@@ -266,7 +266,11 @@ Câu 3 **cố ý không nêu rõ ai hỏi** ("Thời hạn xử lý một yêu c
 >
 > **Từ Nguyễn Thành Nam:** bạn chạy `MarkdownHeadingChunker` trên `MockEmbedder` và chỉ được 1/5, nhưng thay vì giấu đi thì ghi rõ nguyên nhân là nhiễu hàm băm rồi **chuyển trọng tâm đánh giá sang độ mạch lạc của chunk**. Đúng cách lab dặn khi buộc phải dùng mock. Kết quả của bạn cũng là bằng chứng thứ hai, độc lập với tôi, rằng mock phá hỏng mọi số liệu ngữ nghĩa.
 >
-> **Bài học lớn nhất lại không phải về kỹ thuật.** Khi ghép bốn báo cáo lại mới thấy nhóm đã đổi *bốn* biến cùng lúc — corpus, bộ query, backend, chiến lược — nên ba con số 10/10, 5/5, 1/5 không so được với nhau. Tôi học được rằng **chốt biến số trước khi đo quan trọng hơn chọn chiến lược nào**: chính vì thấy điều đó mà tôi chạy lại phép đo có kiểm soát (4 chiến lược, cùng mọi điều kiện), và kết quả ngược hẳn trực giác — chiến lược gần như không ảnh hưởng điểm, backend mới quyết định tất cả.
+> **Từ Hoàng Anh Tú:** bạn làm Report & Demo Lead nên không cầm chiến lược riêng, nhưng phần code Giai đoạn 2 của bạn hoàn thiện đầy đủ 42 passed và trùng khớp cách tiếp cận cả nhóm — đặc biệt prompt đánh số `[1] [2]` kèm nguồn cho agent, thứ làm câu trả lời truy vết được về đúng chunk. Nhìn lại thì vai của bạn là **chốt chặn cuối**: nếu việc gom kết quả cả nhóm diễn ra sớm thay vì lúc ghép báo cáo, nhóm đã phát hiện ba người chạy trên ba corpus từ CP5 và còn kịp chạy lại.
+>
+> **Bài học lớn nhất lại không phải về kỹ thuật, và phần lỗi có tên tôi trong đó.** Khi ghép bốn báo cáo lại mới thấy nhóm đã đổi *bốn* biến cùng lúc — corpus, bộ query, backend, chiến lược — nên ba con số 10/10, 5/5, 1/5 không so được với nhau; tệ hơn, chúng còn không cùng đơn vị (của tôi là thang rubric 10 điểm, hai bạn kia là đếm số câu trên 5). Điều tôi phải nhận: **tôi giữ vai R3, và nhiệm vụ "bảo đảm không ai trùng chiến lược" là của tôi.** Tôi làm phần dễ của vai — nhận `HeadingChunker` và chạy baseline — rồi bỏ phần khó là đi hỏi hai bạn kia định làm gì. Kết quả là cả 3/3 chiến lược đều là biến thể heading và trục so sánh của cả lab biến mất.
+>
+> Tôi học được rằng **chốt biến số trước khi đo quan trọng hơn chọn chiến lược nào**, và rằng phần điều phối của một vai không tự chạy chỉ vì mình đã làm xong phần code của vai đó. Chính vì thấy điều này mà tôi chạy lại phép đo có kiểm soát (4 chiến lược, cùng mọi điều kiện) để vá lại đúng lỗ hổng mình gây ra — và kết quả ngược hẳn trực giác: chiến lược gần như không ảnh hưởng điểm, backend mới quyết định tất cả.
 
 ---
 
