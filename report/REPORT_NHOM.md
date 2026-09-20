@@ -12,14 +12,14 @@
 
 Theo bảng vai trong tài liệu lab: nhóm 3 người thì mỗi người một vai, nhóm 4 người thì người thứ tư làm Report & Demo Lead. **Vai là trách nhiệm điều phối cộng thêm** — ai cũng vẫn tự code Giai đoạn 2 và tự chạy benchmark riêng, nên chỉ có **3 chiến lược chunking**, không phải 4.
 
-| Vai | Người | Trách nhiệm điều phối | Hạn | Thực tế |
-|---|---|---|---|---|
-| **R1 · Data** | Nguyễn Thành Nam | Chốt chủ đề, chia mỗi người 2–3 URL, kiểm metadata từng file, giữ `sources.csv` | CP2 | ⚠️ Corpus bị lọc bớt **sau** CP2 mà không thông báo lại — chính bạn ấy benchmark trên snapshot cũ |
-| **R2 · Benchmark** | Đinh Bảo Hưng | Viết 5 query + gold answer, tự kiểm mỗi gold answer trích được từ tài liệu thật | CP5 | ⚠️ Có viết đủ 5 query + gold answer, nhưng trên **corpus tiếng Anh của riêng mình**; nhóm không nhận được bộ đề chung từ vai này |
-| **R3 · Strategy** | Nguyễn Minh Quân | **Bảo đảm không ai trùng chiến lược**, nhận vai chunk theo heading, chạy baseline cho nhóm | CP5 | ⚠️ Baseline có chạy; phần chống trùng **không thực thi** — cả 3/3 chiến lược đều là biến thể heading |
-| **Report & Demo Lead** | Hoàng Anh Tú | Gom kết quả cả nhóm, dẫn phần thuyết trình | — | ⚠️ Báo cáo cá nhân mới có mục 1–3; chưa chạy benchmark riêng |
+| Vai | Người | Trách nhiệm điều phối | Hạn |
+|---|---|---|---|
+| **R1 · Data** | Nguyễn Thành Nam | Chốt chủ đề, chia mỗi người 2–3 URL, kiểm metadata từng file, giữ `sources.csv` | CP2 |
+| **R2 · Benchmark** | Đinh Bảo Hưng | Viết 5 query + gold answer, tự kiểm mỗi gold answer trích được từ tài liệu thật | CP5 |
+| **R3 · Strategy** | Nguyễn Minh Quân | **Bảo đảm không ai trùng chiến lược**, nhận vai chunk theo heading, chạy baseline cho nhóm | CP5 |
+| **Report & Demo Lead** | Hoàng Anh Tú | Gom kết quả cả nhóm, dẫn phần thuyết trình | — |
 
-> **Bảng này là phần quan trọng nhất của báo cáo.** Ba biến số làm hỏng phép so sánh giữa các thành viên (corpus, bộ query, chiến lược) không phải ba tai nạn rời rạc — mỗi biến trùng khít với **đúng một vai không hoàn thành phần điều phối của mình**. Chi tiết ở mục 2.
+> **Vì sao bảng này đặt ngay đầu báo cáo:** ba biến số làm hỏng phép so sánh giữa các thành viên — corpus, bộ query, chiến lược — không phải ba tai nạn rời rạc. Mỗi biến ứng với **phần điều phối của đúng một vai ở trên**, và phần điều phối đó là thứ cả nhóm đã bỏ qua trong khi vẫn làm tròn phần code. Phân tích từng trường hợp ở mục 2, tổng hợp ở mục 3a.
 
 ---
 
@@ -132,6 +132,7 @@ class HeadingChunker:
                 chunks.append(f"{heading}\n{piece}".strip() if heading else piece)
         return chunks
 ```
+- **Liên hệ với vai R3:** R3 có ba việc — nhận vai chunk theo heading, chạy baseline cho nhóm, và **bảo đảm không ai trùng chiến lược**. Hai việc đầu xong; việc thứ ba không làm. Tôi chọn `HeadingChunker` rồi bắt tay vào code luôn mà không hỏi hai bạn kia định dùng gì, nên tới lúc ghép báo cáo mới biết cả ba đều chọn biến thể heading. Đây là lỗi điều phối nặng nhất trong nhóm, vì nó xoá mất đúng trục so sánh mà cả lab xoay quanh — và nó là của tôi. Mục 3b là phần tôi chạy bù để vá lại.
 
 **Chiến lược 2 — Nguyễn Thành Nam (R1 · Data)**
 - **Loại chiến lược:** custom — `MarkdownHeadingChunker` + lọc metadata
@@ -169,7 +170,7 @@ class HeadingChunker:
 4. **Chiến lược trùng nhau 3/3** — *thuộc phần điều phối của R3.* Cả ba người cầm chiến lược đều chọn biến thể chunk-theo-heading, trong khi lab dặn *"Chiến lược chunking không được trùng nhau"*. Vì chỉ có 3 chiến lược được kỳ vọng, đây là **mất sạch trục so sánh**, không phải mất một phần.
 5. **Backend khác nhau.** Chỉ một người chạy embedder thật. Chênh lệch giữa mock và thật đã đo được là **0/10 vs 10/10** trên cùng chiến lược, cùng corpus — lớn hơn mọi khác biệt giữa các chiến lược. Vai nào cũng không sở hữu biến này, và đó chính là lý do nó trôi.
 
-**Riêng con số 5/5 của R2 cần đặt dấu hỏi.** `MockEmbedder` băm MD5, **không mã hoá ngữ nghĩa** — chạy mock trên corpus Shopee 157 chunk thì R3 được **0/10** ở mức nội dung. Đạt tuyệt đối 5/5 bằng mock chỉ hợp lý nếu chấm ở **mức `doc_id`** thay vì mức nội dung: với 114 chunk trải trên 5 file (36 buyer / 78 seller), xác suất gold doc lọt top-3 **hoàn toàn ngẫu nhiên** đã là ~60% nếu gold là file nhỏ và ~97% nếu gold là file 78 chunk — tức 5/5 gần như chắc chắn xảy ra kể cả khi embedding là nhiễu thuần. Đây đúng là Failure case 4 ở mục 4. **Cần hỏi lại R2 chấm ở mức nào trước khi đưa con số này lên slide.**
+**Riêng con số 5/5 của R2 cần đặt dấu hỏi.** `MockEmbedder` băm MD5, **không mã hoá ngữ nghĩa** — chạy mock trên corpus Shopee 157 chunk thì R3 được **0/10** ở mức nội dung. Đạt tuyệt đối 5/5 bằng mock chỉ hợp lý nếu chấm ở **mức `doc_id`** thay vì mức nội dung: với 114 chunk trải trên 5 file (36 buyer / 78 seller), xác suất gold doc lọt top-3 **hoàn toàn ngẫu nhiên** đã là ~60% nếu gold là file nhỏ và ~97% nếu gold là file 78 chunk — tức 5/5 gần như chắc chắn xảy ra kể cả khi embedding là nhiễu thuần. Đây đúng là Failure case 4 ở mục 4. **Con số này vì vậy được trình bày kèm cảnh báo, không dùng để xếp hạng** — cần R2 xác nhận chấm ở mức nào thì mới chốt được.
 
 Điểm chung đáng ghi nhận: cả bốn báo cáo đều **42 passed**, và ba người mô tả `search_with_filter` bằng đúng cơ chế tiền lọc (pre-filtering) — phần code cốt lõi thì nhóm đồng nhất. Khác biệt nằm hết ở phần điều phối, không ở phần code.
 
@@ -245,7 +246,7 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
-**Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
+**Những phân tích (insights) nhóm đã trình bày:**
 > **Mở đầu — mỗi biến số trôi đều có một vai đứng tên.** Lab giao sẵn R1 chốt corpus (CP2), R2 giao bộ query chung (CP5), R3 chống trùng chiến lược (CP5). Nhóm làm hết phần *code* của từng vai, bỏ phần *điều phối* — và ba thứ làm hỏng phép so sánh trùng khít với đúng ba vai đó: corpus trôi (R1), bộ query không ra đời (R2), trùng chiến lược 3/3 (R3). Nhóm mở đầu bằng insight này vì nó cho thấy sự cố không ngẫu nhiên mà **có cấu trúc**.
 >
 > 1. **Chấm theo `doc_id` thổi phồng kết quả.** Cùng một lượt chạy, chấm ngây thơ ra 2/10 còn chấm ở mức nội dung ra 0/10 — vì câu 1 và câu 5 có gold `doc_id` ở top-2 nhưng lọt vào **sai section**, ngữ cảnh không chứa con số cần trả lời.
@@ -310,5 +311,5 @@ Kết quả dưới đây chạy bằng `gemini-embedding-001` (3.072 chiều, �
 | Lựa chọn tài liệu (Document Set Quality) | **9** / 10 | 7 tài liệu công khai, metadata đủ 7 trường, `sources.csv` khớp 1-1, `document_version` trích từ chính văn bản. Trừ điểm vì `shipping-policy` để `audience: both` khiến filter `==` loại nhầm nó |
 | Thiết kế chiến lược (Strategy Design) | **12** / 15 | Có chiến lược custom + lý do + baseline 4 chiến lược + phép đo có kiểm soát ở 3b khôi phục lại trục so sánh đã mất. Trừ điểm vì **3/3 người cầm chiến lược đều trùng biến thể heading** (phần điều phối của R3 không thực thi) và so sánh ở 3a không hợp lệ do lệch corpus/query/backend |
 | Chất lượng truy xuất (Retrieval Quality) | **10** / 10 | 10/10 trên `gemini-embedding-001`, chấm hai mức, A/B chứng minh filter chênh 2 điểm |
-| Thuyết trình (Demo) | **—** / 5 | Chưa thuyết trình. Vai Report & Demo Lead (Hoàng Anh Tú) chủ trì; đã có sẵn 6 insight + 4 failure case + `bench.py` chạy được trực tiếp. Phần gom kết quả cả nhóm còn dở — cần chốt trước buổi demo |
-| **Tổng phần nhóm** | **31–36** / 40 | tuỳ điểm demo |
+| Thuyết trình (Demo) | **5** / 5 | Đã thuyết trình, vai Report & Demo Lead (Hoàng Anh Tú) chủ trì. Trình bày đủ 6 insight + 4 failure case, mở đầu bằng bản đồ lỗi-theo-vai, và chạy `bench.py` trực tiếp thay vì chỉ chiếu số liệu tĩnh |
+| **Tổng phần nhóm** | **36** / 40 | 9 + 12 + 10 + 5 |
