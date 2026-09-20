@@ -1,0 +1,97 @@
+==============================================================================
+BENCHMARK RETRIEVAL — corpus data\ecommerce
+Chien luoc chunk : HeadingChunker(chunk_size=800)
+Embedding backend: gemini-embedding-001
+==============================================================================
+
+Da nap 157 chunk tu 7 file:
+  shopee-buyer-cancel-order            7 chunk
+  shopee-prohibited-items             20 chunk
+  shopee-return-refund-buyer          29 chunk
+  shopee-return-refund-seller          5 chunk
+  shopee-seller-listing-rules         32 chunk
+  shopee-shipping-policy              43 chunk
+  shopee-voucher-refund-policy        21 chunk
+  -> do dai chunk: min=34 / trung binh=596 / max=867
+
+------------------------------------------------------------------------------
+Q1 [tra số liệu] Người mua có bao nhiêu ngày để gửi yêu cầu trả hàng hoàn tiền kể từ khi đơn hàng được cập nhật giao hàng thành công?
+  gold doc_id : shopee-return-refund-buyer
+  phai chua   : '15 (mười lăm) ngày'
+
+  TOP-3 (khong loc):
+    1. score=+0.8037  [buyer ] shopee-return-refund-buyer#6  ## 3. ĐIỀU KIỆN YÊU CẦU TRẢ HÀNG/HOÀN TIỀN
+    2. score=+0.7855  [buyer ] shopee-return-refund-buyer#0  # Chính sách Trả hàng và Hoàn tiền — quyền và nghĩa vụ Ngư
+    3. score=+0.7800  [seller] shopee-return-refund-seller#0  # Chính sách Trả hàng và Hoàn tiền — trách nhiệm Người Bán
+
+  Cham muc doc_id : top-1
+  Cham muc noi dung: CO chua dap an
+  => 2/2 diem
+
+------------------------------------------------------------------------------
+Q2 [hỏi điều kiện] Đơn hàng ở trạng thái nào thì người mua hủy được ngay, trạng thái nào phải chờ người bán phản hồi?
+  gold doc_id : shopee-buyer-cancel-order
+  phai chua   : 'Chờ xác nhận'
+
+  TOP-3 (khong loc):
+    1. score=+0.8454  [buyer ] shopee-buyer-cancel-order#0  # Quy định hủy đơn hàng dành cho Người Mua
+    2. score=+0.8357  [buyer ] shopee-buyer-cancel-order#1  ## 1. Người mua chỉ CÓ thể yêu cầu hủy đơn trong các trườn
+    3. score=+0.8030  [buyer ] shopee-buyer-cancel-order#3  ### 2.1. Hủy đơn khi đơn hàng ở trạng thái Chờ xác nhận ho
+
+  Cham muc doc_id : top-1
+  Cham muc noi dung: CO chua dap an
+  => 2/2 diem
+
+------------------------------------------------------------------------------
+Q3 [hỏi quy trình — CẦN FILTER] Thời hạn xử lý một yêu cầu trả hàng là bao nhiêu ngày?
+  gold doc_id : shopee-return-refund-seller
+  phai chua   : '02 ngày lịch'
+
+  TOP-3 (metadata_filter={'audience': 'seller'}):
+    1. score=+0.7458  [seller] shopee-return-refund-seller#0  # Chính sách Trả hàng và Hoàn tiền — trách nhiệm Người Bán
+    2. score=+0.7327  [seller] shopee-return-refund-seller#1  ## 5. QUYỀN CỦA NGƯỜI BÁN
+    3. score=+0.6921  [seller] shopee-return-refund-seller#4  ## 7. TRÁCH NHIỆM VỀ CHI PHÍ VẬN CHUYỂN HOÀN TRẢ SẢN PHẨM 
+
+  Cham muc doc_id : top-1
+  Cham muc noi dung: CO chua dap an
+  => 2/2 diem
+
+  --- A/B: chay lai CHINH cau nay nhung KHONG loc ---
+    1. score=+0.7476  [buyer ] shopee-return-refund-buyer#6  ## 3. ĐIỀU KIỆN YÊU CẦU TRẢ HÀNG/HOÀN TIỀN
+    2. score=+0.7458  [seller] shopee-return-refund-seller#0  # Chính sách Trả hàng và Hoàn tiền — trách nhiệm Người Bán
+    3. score=+0.7410  [buyer ] shopee-return-refund-buyer#0  # Chính sách Trả hàng và Hoàn tiền — quyền và nghĩa vụ Ngư
+  Khong loc => top-2, khong chua dap an, 0/2 diem
+  => FILTER CO TAC DUNG
+
+------------------------------------------------------------------------------
+Q4 [liệt kê] Sản phẩm hoàn trả phải đáp ứng những yêu cầu gì khi người mua gửi trả?
+  gold doc_id : shopee-return-refund-buyer
+  phai chua   : 'hóa đơn thuế GTGT'
+
+  TOP-3 (khong loc):
+    1. score=+0.8310  [buyer ] shopee-return-refund-buyer#16  ## 6. YÊU CẦU ĐỐI VỚI SẢN PHẨM HOÀN TRẢ
+    2. score=+0.8060  [seller] shopee-return-refund-seller#0  # Chính sách Trả hàng và Hoàn tiền — trách nhiệm Người Bán
+    3. score=+0.7963  [buyer ] shopee-return-refund-buyer#0  # Chính sách Trả hàng và Hoàn tiền — quyền và nghĩa vụ Ngư
+
+  Cham muc doc_id : top-1
+  Cham muc noi dung: CO chua dap an
+  => 2/2 diem
+
+------------------------------------------------------------------------------
+Q5 [tra số liệu] Hàng hóa phải còn hạn sử dụng bao lâu thì người bán mới được đăng bán?
+  gold doc_id : shopee-seller-listing-rules
+  phai chua   : 'ít nhất 30%'
+
+  TOP-3 (khong loc):
+    1. score=+0.8383  [seller] shopee-seller-listing-rules#27  ## D. QUY ĐỊNH VỀ HẠN SỬ DỤNG CỦA SẢN PHẨM
+    2. score=+0.8150  [seller] shopee-seller-listing-rules#28  ## D. QUY ĐỊNH VỀ HẠN SỬ DỤNG CỦA SẢN PHẨM
+    3. score=+0.7836  [seller] shopee-seller-listing-rules#0  # Quy định đăng bán sản phẩm dành cho Người Bán
+
+  Cham muc doc_id : top-1
+  Cham muc noi dung: CO chua dap an
+  => 2/2 diem
+
+==============================================================================
+TONG: 10/10 diem
+Embedding cache: 163 hit / 0 lan goi API moi
+==============================================================================
